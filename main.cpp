@@ -2,12 +2,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
-
-struct Question
-{
-  std::string text;
-  std::string type;
-};
+#include "Question.h"
 
 class Survey
 {
