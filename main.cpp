@@ -93,6 +93,7 @@ int main()
           break;
         }
 
+        std::cout << std::endl;
         manager.listSurveys();
         std::cout << "Select survey to conduct (1-" << manager.surveyCount() << "): ";
         int index;
@@ -106,7 +107,24 @@ int main()
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         Survey* selected = manager.getSurvey(index - 1);
-        if (selected) selected->conductSurvey();
+        if (selected)
+        {
+          std::cout << "\n--- Survey Preview ---\n";
+          selected->preview();
+          std::cout << std::endl;
+          std::cout << "Do you want to take this survey? (y/n): ";
+          char confirm;
+          std::cin >> confirm;
+          std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          if (confirm == 'y' || confirm == 'Y') 
+          {
+            selected->conductSurvey();
+          }
+          else 
+          {
+            std::cout << "Survey cancelled." << std::endl;
+          }
+        }
         break;
       }
 

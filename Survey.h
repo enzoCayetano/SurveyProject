@@ -18,6 +18,7 @@ public:
 
     void addQuestion(const std::string& text, const std::string& type = "open", const std::vector<std::string>& options = {});
     void conductSurvey();
+    void preview() const;
     void saveResults(const std::string& filename);
     bool loadFromFile(const std::string& filename);
     void viewResults() const;
