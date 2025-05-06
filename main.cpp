@@ -2,6 +2,7 @@
 #include <string>
 #include <limits>
 #include "SurveyManager.h"
+#include "SurveyIO.h"
 #include "Menu.h"
 
 int main() 
@@ -81,7 +82,7 @@ int main()
         }
 
         manager.addSurvey(survey);
-        std::cout << "Survey '" << name << "' created.\n";
+        std::cout << "Survey '" << name << "' created." << std::endl;
         break;
       }
 
@@ -177,7 +178,7 @@ int main()
         std::cout << "Enter filename to save results: ";
         std::getline(std::cin, filename);
 
-        if (!manager.saveSurvey(index - 1, filename)) 
+        if (!SurveyIO::saveSurvey(*manager.getSurvey(index - 1), filename)) 
         {
           std::cout << "Failed to save survey." << std::endl;
         }
@@ -190,8 +191,10 @@ int main()
         std::cout << "\nEnter filename to load survey: ";
         std::getline(std::cin, filename);
 
-        if (manager.loadSurvey(filename)) 
+        Survey loaded("Loaded Survey");
+        if (SurveyIO::loadSurvey(loaded, filename)) 
         {
+          manager.addSurvey(loaded);
           std::cout << "Survey loaded successfully." << std::endl;
         } 
         else 

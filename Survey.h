@@ -25,4 +25,6 @@ public:
 
     std::string getName() const { return surveyName; }
     size_t getQuestionCount() const { return questions.size(); }
+    void setName(const std::string& newName) { surveyName = newName; }
+    std::vector<Question> getQuestions() const { return questions; }
 };
