@@ -6,13 +6,13 @@
 
 void displayMenu() 
 {
-  std::cout << "\n=== Survey System Menu ===\n";
-  std::cout << "1. Create a new survey\n";
-  std::cout << "2. Take a survey\n";
-  std::cout << "3. View survey results\n";
-  std::cout << "4. Save survey results\n";
-  std::cout << "5. Load survey from file\n";
-  std::cout << "6. Exit\n";
+  std::cout << "\n=== Survey System Menu ===" << std::endl;
+  std::cout << "1. Create a new survey" << std::endl;
+  std::cout << "2. Take a survey" << std::endl;
+  std::cout << "3. View survey results" << std::endl;
+  std::cout << "4. Save survey results" << std::endl;
+  std::cout << "5. Load survey from file" << std::endl;
+  std::cout << "6. Exit" << std::endl;
   std::cout << "Enter choice (1-6): ";
 }
 
@@ -24,10 +24,11 @@ int main()
   while (running) 
   {
     displayMenu();
+
     int choice;
     if (!(std::cin >> choice)) 
     {
-      std::cout << "Invalid input. Please enter a number.\n";
+      std::cout << "Invalid input. Please enter a number." << std::endl;
       std::cin.clear();
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       continue;
@@ -40,6 +41,7 @@ int main()
       case 1: 
       {
         std::string name;
+        std::cout << std::endl;
         std::cout << "Enter survey name: ";
         std::getline(std::cin, name);
         Survey survey(name);
@@ -48,7 +50,7 @@ int main()
         int numQuestions;
         if (!(std::cin >> numQuestions) || numQuestions < 1) 
         {
-          std::cout << "Invalid number. Survey not created.\n";
+          std::cout << "Invalid number. Survey not created." << std::endl;
           std::cin.clear();
           std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
@@ -70,8 +72,10 @@ int main()
             int numOptions;
             if (!(std::cin >> numOptions) || numOptions < 2) 
             {
-              std::cout << "Invalid number of options. Using open type.\n";
+              std::cout << "Invalid number of options. Using open type." << std::endl;
               type = "open";
+              std::cin.clear();
+              std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
             else 
             {
@@ -91,17 +95,19 @@ int main()
           std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         surveys.push_back(survey);
-        std::cout << "Survey '" << name << "' created.\n";
+        std::cout << "Survey '" << name << "' created." << std::endl;
         break;
       }
       case 2: 
       {
+        std::cout << std::endl;
         if (surveys.empty()) 
         {
-          std::cout << "No surveys available.\n";
+          std::cout << std::endl;
+          std::cout << "No surveys available." << std::endl;
           break;
         }
-        std::cout << "Available surveys:\n";
+        std::cout << "Available surveys:" << std::endl;
         for (size_t i = 0; i < surveys.size(); ++i) 
         {
           std::cout << i + 1 << ". " << surveys[i].getName() << " (" << surveys[i].getQuestionCount() << " questions)" << std::endl;
@@ -122,6 +128,7 @@ int main()
       }
       case 3:
       {
+        std::cout << std::endl;
         if (surveys.empty()) 
         {
           std::cout << "No surveys available." << std::endl;
@@ -148,6 +155,7 @@ int main()
       }
       case 4: 
       {
+        std::cout << std::endl;
         if (surveys.empty()) 
         {
           std::cout << "No surveys available." << std::endl;
@@ -180,6 +188,7 @@ int main()
       }
       case 5: 
       {
+        std::cout << std::endl;
         std::string filename;
         std::cout << "Enter filename to load survey: ";
         std::getline(std::cin, filename);
@@ -196,6 +205,7 @@ int main()
         break;
       }
       case 6:
+        std::cout << std::endl;
         running = false;
         std::cout << "Exiting program." << std::endl;
         break;
