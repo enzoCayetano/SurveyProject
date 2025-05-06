@@ -104,13 +104,13 @@ int main()
         std::cout << "Available surveys:\n";
         for (size_t i = 0; i < surveys.size(); ++i) 
         {
-          std::cout << i + 1 << ". " << surveys[i].getName() << " (" << surveys[i].getQuestionCount() << " questions)\n";
+          std::cout << i + 1 << ". " << surveys[i].getName() << " (" << surveys[i].getQuestionCount() << " questions)" << std::endl;
         }
         std::cout << "Select survey (1-" << surveys.size() << "): ";
         int surveyIndex;
         if (!(std::cin >> surveyIndex) || surveyIndex < 1 || surveyIndex > static_cast<int>(surveys.size())) 
         {
-          std::cout << "Invalid selection.\n";
+          std::cout << "Invalid selection." << std::endl;
           std::cin.clear();
           std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
@@ -124,10 +124,10 @@ int main()
       {
         if (surveys.empty()) 
         {
-          std::cout << "No surveys available.\n";
+          std::cout << "No surveys available." << std::endl;
           break;
         }
-        std::cout << "Available surveys:\n";
+        std::cout << "Available surveys:" << std::endl;
         for (size_t i = 0; i < surveys.size(); ++i) 
         {
           std::cout << i + 1 << ". " << surveys[i].getName() << "\n";
@@ -136,7 +136,7 @@ int main()
         int surveyIndex;
         if (!(std::cin >> surveyIndex) || surveyIndex < 1 || surveyIndex > static_cast<int>(surveys.size())) 
         {
-          std::cout << "Invalid selection.\n";
+          std::cout << "Invalid selection." << std::endl;
           std::cin.clear();
           std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
@@ -150,11 +150,11 @@ int main()
       {
         if (surveys.empty()) 
         {
-          std::cout << "No surveys available.\n";
+          std::cout << "No surveys available." << std::endl;
           break;
         }
 
-        std::cout << "Available surveys:\n";
+        std::cout << "Available surveys:" << std::endl;
         for (size_t i = 0; i < surveys.size(); ++i) 
         {
           std::cout << i + 1 << ". " << surveys[i].getName() << "\n";
@@ -164,7 +164,7 @@ int main()
         std::cout << "Select survey to save (1-" << surveys.size() << "): ";
         if (!(std::cin >> surveyIndex) || surveyIndex < 1 || surveyIndex > static_cast<int>(surveys.size())) 
         {
-          std::cout << "Invalid selection.\n";
+          std::cout << "Invalid selection." << std::endl;
           std::cin.clear();
           std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
@@ -187,20 +187,20 @@ int main()
         if (survey.loadFromFile(filename)) 
         {
           surveys.push_back(survey);
-          std::cout << "Survey loaded successfully.\n";
+          std::cout << "Survey loaded successfully." << std::endl;
         } 
         else 
         {
-          std::cout << "Failed to load survey.\n";
+          std::cout << "Failed to load survey." << std::endl;
         }
         break;
       }
       case 6:
         running = false;
-        std::cout << "Exiting program.\n";
+        std::cout << "Exiting program." << std::endl;
         break;
       default:
-        std::cout << "Invalid choice. Please try again.\n";
+        std::cout << "Invalid choice. Please try again." << std::endl;
     }
   }
 
