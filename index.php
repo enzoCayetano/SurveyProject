@@ -1,5 +1,12 @@
 <?php
   // include('db.php'); // database connection file TBA
+  session_start();
+
+  // test login
+  if (!isset($_SESSION['role'])) 
+  {
+    $_SESSION['role'] = 'admin'; // user || admin
+  }
 ?>
 <!DOCTYPE html>
 <html>
