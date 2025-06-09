@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . 'SurveyModel.php';
-require_once __DIR__ . 'Question.php';
+require_once __DIR__ . '/SurveyModel.php';
+require_once __DIR__ . '/Question.php';
 
 class SurveyController 
 {
@@ -60,7 +60,7 @@ class SurveyController
       echo "Access denied.";
       return;
     }
-    include __DIR__ . '/../views/admin_dashboard.php';
+    include __DIR__ . '/admin_dashboard.php';
   }
 
   public function showCreateForm() 
@@ -71,27 +71,41 @@ class SurveyController
       return;
     }
 
-    include __DIR__ . '/../views/create_survey.php';
+    include __DIR__ . '/create_survey.php';
   }
+
+  public function takeSurvey() 
+  {
+  $data = file_get_contents(__DIR__ . '/../data/surveys.json');
+  $surveyArray = json_decode($data, true);
+
+  $survey = new Survey($surveyArray['surveyName']);
+  foreach ($surveyArray['questions'] as $q) 
+  {
+    $survey->addQuestion($q['text'], $q['type'], $q['options']);
+  }
+
+  include __DIR__ . '/../views/survey_form.php';
+}
 
   public function saveSurvey() // FIX LATER
   {
-      if ($_SESSION['role'] !== 'admin') 
-      {
-        echo "Access denied.";
-        return;
-      }
+    if ($_SESSION['role'] !== 'admin') 
+    {
+      echo "Access denied.";
+      return;
+    }
 
-      // Example saving logic — can be expanded later
-      $surveyName = $_POST['survey_name'];
-      $survey = new Survey($surveyName);
+    // Example saving logic — can be expanded later
+    $surveyName = $_POST['survey_name'];
+    $survey = new Survey($surveyName);
 
-      // Assume you’re adding 1 question for now
-      $question = new Question($_POST['q_text'], $_POST['q_type'], explode(",", $_POST['q_options'] ?? ""));
-      $survey->addQuestion($question->getText(), $question->getType(), $question->getOptions());
+    // Assume you’re adding 1 question for now
+    $question = new Question($_POST['q_text'], $_POST['q_type'], explode(",", $_POST['q_options'] ?? ""));
+    $survey->addQuestion($question->getText(), $question->getType(), $question->getOptions());
 
-      file_put_contents(__DIR__ . '/../data/surveys.json', json_encode($survey));
+    file_put_contents(__DIR__ . '/../data/surveys.json', json_encode($survey));
 
-      echo "Survey saved!";
+    echo "Survey saved!";
   }
 }
