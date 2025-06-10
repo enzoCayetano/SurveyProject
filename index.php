@@ -1,20 +1,5 @@
-<?php
-  session_start();
-  require_once __DIR__ . '/SurveyController.php';
-
-  $controller = new SurveyController();
-
-  $action = $_GET['action'] ?? ($_SESSION['role'] === 'admin' ? 'dashboard' : 'take');
-
-  switch ($action) {
-    case 'dashboard': $controller->dashboard(); break;
-    case 'create': $controller->showCreateForm(); break;
-    case 'save': $controller->saveSurvey(); break;
-    case 'take': $controller->takeSurvey(); break;
-    case 'submit': $controller->handleSubmission(); break;
-    case 'results': $controller->results(); break;
-    default: echo "404 Not Found";
-  }
+<?php 
+  session_start(); 
 ?>
 <!DOCTYPE html>
 <html>
@@ -27,8 +12,19 @@
       <nav>
         <ul>
           <li><a href="index.php">Home</a></li>
-          <li><a href="survey.php">Take Survey</a></li>
-          <li><a href="results.php">View Results</a></li>
+          <li><a href="survey.php?action=take">Take Survey</a></li>
+          <li><a href="survey.php?action=results">View Results</a></li>
+
+          <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+            <li><a href="survey.php?action=dashboard">Admin Dashboard</a></li>
+          <?php endif; ?>
+
+          <?php if (isset($_SESSION['username'])): ?>
+            <li><a href="logout.php">Log Out (<?= htmlspecialchars($_SESSION['username']) ?>)</a></li>
+          <?php else: ?>
+            <li><a href="login.php">Log In</a></li>
+            <li><a href="signup.php">Sign Up</a></li>
+          <?php endif; ?>
         </ul>
       </nav>
     </header>

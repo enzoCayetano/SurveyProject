@@ -17,7 +17,7 @@ class SurveyController
 
   public function showForm(): void 
   {
-    // include __DIR__ . '/../views/survey_form.php';
+    include __DIR__ . '/survey_form.php';
   }
 
   public function handleSubmission(): void 
@@ -85,7 +85,7 @@ class SurveyController
     $survey->addQuestion($q['text'], $q['type'], $q['options']);
   }
 
-  include __DIR__ . '/../views/survey_form.php';
+  include __DIR__ . '/survey_form.php';
 }
 
   public function saveSurvey() // FIX LATER
@@ -96,11 +96,9 @@ class SurveyController
       return;
     }
 
-    // Example saving logic — can be expanded later
     $surveyName = $_POST['survey_name'];
     $survey = new Survey($surveyName);
 
-    // Assume you’re adding 1 question for now
     $question = new Question($_POST['q_text'], $_POST['q_type'], explode(",", $_POST['q_options'] ?? ""));
     $survey->addQuestion($question->getText(), $question->getType(), $question->getOptions());
 
