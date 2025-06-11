@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/SurveyModel.php';
-require_once __DIR__ . '/Question.php';
+require_once 'SurveyModel.php';
+require_once 'Question.php';
 
 class SurveyController 
 {
@@ -17,7 +17,7 @@ class SurveyController
 
   public function showForm(): void 
   {
-    include __DIR__ . '/survey_form.php';
+    include 'survey_form.php';
   }
 
   public function handleSubmission(): void 
@@ -40,7 +40,7 @@ class SurveyController
     $this->survey->allResponses[] = $responses;
     // $this->survey->saveResults(__DIR__ . '/../data/survey_results.txt');
 
-    // include __DIR__ . '/../views/thank_you.php';
+    // include 'views/thank_you.php';
   }
 
   public function preview(): void 
@@ -60,7 +60,7 @@ class SurveyController
       echo "Access denied.";
       return;
     }
-    include __DIR__ . '/admin_dashboard.php';
+    include 'admin_dashboard.php';
   }
 
   public function showCreateForm() 
@@ -71,22 +71,38 @@ class SurveyController
       return;
     }
 
-    include __DIR__ . '/create_survey.php';
+    include 'create_survey.php';
   }
 
   public function takeSurvey() 
   {
-  $data = file_get_contents(__DIR__ . '/../data/surveys.json');
-  $surveyArray = json_decode($data, true);
+    $filePath = __DIR__ . '/../data/surveys.json';
 
-  $survey = new Survey($surveyArray['surveyName']);
-  foreach ($surveyArray['questions'] as $q) 
-  {
-    $survey->addQuestion($q['text'], $q['type'], $q['options']);
+    if (!file_exists($filePath)) 
+    {
+      echo "No surveys available.";
+      return;
+    }
+
+    $data = file_get_contents($filePath);
+    $surveyArray = json_decode($data, true);
+
+    if (!$surveyArray || empty($surveyArray['questions'])) 
+    {
+      echo "No surveys found.";
+      return;
+    }
+
+    $survey = new Survey($surveyArray['surveyName']);
+
+    foreach ($surveyArray['questions'] as $q) 
+    {
+      $survey->addQuestion($q['text'], $q['type'], $q['options'] ?? []);
+    }
+
+    $this->survey = $survey;
+    include 'survey_form.php';
   }
-
-  include __DIR__ . '/survey_form.php';
-}
 
   public function saveSurvey() // FIX LATER
   {

@@ -1,13 +1,14 @@
 <?php
   session_start();
-  require_once __DIR__ . '/SurveyController.php';
+  require_once 'SurveyController.php';
 
   $controller = new SurveyController();
 
   $action = $_GET['action'] ?? ($_SESSION['role'] === 'admin' ? 'dashboard' : 'take');
 
 
-  switch ($action) {
+  switch ($action) 
+  {
     case 'dashboard': $controller->dashboard(); break;
     case 'create': $controller->showCreateForm(); break;
     case 'save': $controller->saveSurvey(); break;
