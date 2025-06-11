@@ -1,4 +1,4 @@
-<?php include 'header.php'; ?>
+<?php include 'partials/header.php'; ?>
 
 <h2>Admin Dashboard</h2>
 <ul>
@@ -7,4 +7,4 @@
   <li><a href="logout.php">Log Out</a></li>
 </ul>
 
-<?php include 'footer.php'; ?>
+<?php include 'partials/footer.php'; ?>
