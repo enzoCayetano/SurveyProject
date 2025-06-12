@@ -1,5 +1,4 @@
 <?php
-  session_start();
   $errors = $_SESSION['signup_errors'] ?? [];
   $old = $_SESSION['old_input'] ?? [];
 

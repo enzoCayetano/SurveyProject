@@ -1,5 +1,4 @@
 <?php
-  session_start();
   $errors = $_SESSION['login_errors'] ?? [];
   unset($_SESSION['login_errors']);
 
@@ -24,7 +23,7 @@
 
   <label>Password:</label><br>
   <input type="password" name="password" required><br>
-  
+        
   <label><input type="checkbox" name="remember"> Remember me</label>
 
   <button type="submit">Login</button>
