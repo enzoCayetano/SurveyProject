@@ -1,5 +1,5 @@
 <form action="?action=submit" method="POST">
-  <?php foreach ($this->survey->questions as $i => $q): ?>
+  <?php foreach ($survey->questions as $i => $q): ?>
     <p><?= ($i + 1) ?>. <?= htmlspecialchars($q->getText()) ?></p>
 
     <?php if ($q->getType() === "multiple-choice"): ?>

@@ -1,21 +1,119 @@
 <?php
   require_once 'Question.php';
 
-  class Survey 
+  class Survey
   {
+    private PDO $pdo;
+    public int $id;
     public string $surveyName;
     public array $questions = [];
-    public array $allResponses = [];
 
-    public function __construct(string $name = "") 
+    public function __construct(PDO $pdo, string $name = "", int $id = 0)
     {
+      $this->pdo = $pdo;
       $this->surveyName = $name;
+      $this->id = $id;
     }
 
-    public function validateResponse(string $response, Question $question): bool 
+    public function addQuestion(string $text, string $type, array $options = []): void
+    {
+      $this->questions[] = new Question($text, $type, $options);
+    }
+
+    public function createSurvey(): bool
+    {
+      try 
+      {
+        $this->pdo->beginTransaction();
+
+        $stmt = $this->pdo->prepare("INSERT INTO surveys (survey_name) VALUES (?)");
+        $stmt->execute([$this->surveyName]);
+        $this->id = $this->pdo->lastInsertId();
+
+        foreach ($this->questions as $q) 
+        {
+          $stmtQ = $this->pdo->prepare("INSERT INTO questions (survey_id, question_text, question_type, options) VALUES (?, ?, ?, ?)");
+          $optionsJson = $q->getOptions() ? json_encode($q->getOptions()) : null;
+          $stmtQ->execute([$this->id, $q->getText(), $q->getType(), $optionsJson]);
+          $q->setId($this->pdo->lastInsertId());
+        }
+
+        $this->pdo->commit();
+        return true;
+      } 
+      catch (PDOException $e) 
+      {
+        $this->pdo->rollBack();
+        error_log("Survey creation failed: " . $e->getMessage());
+        return false;
+      }
+    }
+
+    public static function loadFromDatabase(PDO $pdo, int $surveyId): ?Survey
+    {
+      $stmt = $pdo->prepare("SELECT * FROM surveys WHERE id = ?");
+      $stmt->execute([$surveyId]);
+      $surveyData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if (!$surveyData) return null;
+
+      $survey = new Survey($pdo, $surveyData['survey_name'], $surveyId);
+
+      $qstmt = $pdo->prepare("SELECT * FROM questions WHERE survey_id = ?");
+      $qstmt->execute([$surveyId]);
+      while ($q = $qstmt->fetch(PDO::FETCH_ASSOC)) 
+      {
+        $options = $q['options'] ? json_decode($q['options'], true) : [];
+        $survey->questions[] = new Question($q['question_text'], $q['question_type'], $options, $q['id']);
+      }
+
+      return $survey;
+    }
+
+    public function getLatestSurvey(): ?Survey
+    {
+      $stmt = $this->pdo->query("SELECT id FROM surveys ORDER BY id DESC LIMIT 1");
+      $row = $stmt->fetch(PDO::FETCH_ASSOC);
+      if (!$row) return null;
+      return self::loadFromDatabase($this->pdo, intval($row['id']));
+    }
+
+    public function getQuestions(): array
+    {
+      return $this->questions;
+    }
+
+    public function saveResponse(int $userId, array $responses): bool
+    {
+      try 
+      {
+        $this->pdo->beginTransaction();
+
+        $stmt = $this->pdo->prepare("INSERT INTO responses (survey_id, user_id, submitted_at) VALUES (?, ?, NOW())");
+        $stmt->execute([$this->id, $userId]);
+        $responseId = $this->pdo->lastInsertId();
+
+        foreach ($this->questions as $question) 
+        {
+          $answer = $responses[$question->getId()] ?? '';
+          $ansStmt = $this->pdo->prepare("INSERT INTO answers (response_id, question_id, answer) VALUES (?, ?, ?)");
+          $ansStmt->execute([$responseId, $question->getId(), $answer]);
+        }
+
+        $this->pdo->commit();
+        return true;
+      } 
+      catch (PDOException $e) 
+      {
+        $this->pdo->rollBack();
+        error_log("Error saving response: " . $e->getMessage());
+        return false;
+      }
+    }
+
+    public function validateResponse(string $response, Question $question): bool
     {
       $type = $question->getType();
-
       if ($type === "yes/no") 
       {
         return in_array(strtolower($response), ["y", "n"]);
@@ -26,127 +124,45 @@
       } 
       elseif ($type === "multiple-choice") 
       {
-        $choice = intval($response);
-        return $choice > 0 && $choice <= count($question->getOptions());
+        return in_array($response, $question->getOptions());
       } 
       elseif ($type === "rating") 
       {
         $rating = intval($response);
         return $rating >= 1 && $rating <= 5;
       }
-
       return true;
     }
 
-    public function addQuestion(string $text, string $type, array $options = []): void 
+    public function viewResults(): void
     {
-      $this->questions[] = new Question($text, $type, $options);
-    }
-
-    public function conductSurvey(): void 
-    {
-      echo "<h2>" . htmlspecialchars($this->surveyName) . " Survey</h2>";
-      $responses = [];
-
-      foreach ($this->questions as $i => $q) 
-      {
-        $prompt = "<p>" . ($i + 1) . ". " . htmlspecialchars($q->getText()) . "</p>";
-
-        if ($q->getType() === "multiple-choice") 
-        {
-          foreach ($q->getOptions() as $j => $opt) 
-          {
-            $prompt .= "<div>" . ($j + 1) . ") " . htmlspecialchars($opt) . "</div>";
-          }
-        }
-
-        echo $prompt;
-      }
-    }
-
-    public function preview(): void 
-    {
-      echo "<h3>Survey Preview: " . htmlspecialchars($this->surveyName) . "</h3>";
-      foreach ($this->questions as $i => $q) 
-      {
-        echo "<p>" . ($i + 1) . ". " . htmlspecialchars($q->getText()) . " [" . $q->getType() . "]</p>";
-        if ($q->getType() === "multiple-choice") 
-        {
-          foreach ($q->getOptions() as $opt) 
-          {
-            echo "<div>&nbsp;&nbsp;- " . htmlspecialchars($opt) . "</div>";
-          }
-        }
-      }
-    }
-
-    public function saveResults(string $filename): void {
-      $file = fopen($filename, "a");
-      if (!$file) 
-      {
-        echo "Error: Could not open file for writing.<br>";
-        return;
-      }
-
-      fwrite($file, "Survey: " . $this->surveyName . "\n");
-      foreach ($this->allResponses as $responseSet) 
-      {
-        fwrite($file, "Response Set:\n");
-        foreach ($responseSet as $i => $response) 
-        {
-          fwrite($file, ($i + 1) . ". " . $this->questions[$i]->getText() . ": " . $response . "\n");
-        }
-        fwrite($file, "\n");
-      }
-
-      fclose($file);
-      echo "Results saved to $filename<br>";
-    }
-
-    public function loadFromFile(string $filename): bool 
-    {
-      if (!file_exists($filename)) 
-      {
-        echo "Error: File not found.<br>";
-        return false;
-      }
-
-      $lines = file($filename, FILE_IGNORE_NEW_LINES);
-      $this->questions = [];
-      $this->allResponses = [];
-
-      foreach ($lines as $line) 
-      {
-        if (str_starts_with($line, "Survey: ")) 
-        {
-          $this->surveyName = substr($line, 8);
-        } 
-        elseif (str_starts_with($line, "Question: ")) 
-        {
-          $text = substr($line, 10);
-          $type = trim(next($lines));
-          $this->questions[] = new Question($text, $type);
-        }
-      }
-
-      return true;
-    }
-
-    public function viewResults(): void 
-    {
-      if (empty($this->allResponses)) 
-      {
-        echo "<p>No responses recorded for " . htmlspecialchars($this->surveyName) . ".</p>";
-        return;
-      }
-
       echo "<h2>Results for " . htmlspecialchars($this->surveyName) . "</h2>";
-      foreach ($this->allResponses as $setIndex => $responseSet) 
+
+      foreach ($this->questions as $q) 
       {
-        echo "<h4>Response Set " . ($setIndex + 1) . "</h4>";
-        foreach ($responseSet as $i => $response) 
+        echo "<h3>" . htmlspecialchars($q->getText()) . "</h3>";
+
+        $stmt = $this->pdo->prepare("
+          SELECT answer, COUNT(*) as count 
+          FROM answers 
+          WHERE question_id = ? 
+          GROUP BY answer
+        ");
+        $stmt->execute([$q->getId()]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($results)) 
         {
-          echo "<p>" . ($i + 1) . ". " . $this->questions[$i]->getText() . ": " . htmlspecialchars($response) . "</p>";
+          echo "<p>No responses.</p>";
+        } 
+        else 
+        {
+          echo "<ul>";
+          foreach ($results as $r) 
+          {
+            echo "<li>" . htmlspecialchars($r['answer']) . ": " . $r['count'] . "</li>";
+          }
+          echo "</ul>";
         }
       }
     }

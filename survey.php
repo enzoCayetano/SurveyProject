@@ -5,8 +5,9 @@
   }
   
   require_once 'SurveyController.php';
+  require_once 'db.php';
 
-  $controller = new SurveyController();
+  $controller = new SurveyController($pdo);
 
   $action = $_GET['action'] ?? ((isset($_SESSION['role']) && $_SESSION['role'] === 'admin') ? 'dashboard' : 'take');
 

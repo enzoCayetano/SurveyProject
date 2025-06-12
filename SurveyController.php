@@ -1,134 +1,127 @@
 <?php
-require_once 'SurveyModel.php';
-require_once 'Question.php';
+  require_once 'SurveyModel.php';
 
-class SurveyController 
-{
-  private Survey $survey;
-
-  public function __construct() // SAMPLE SURVEY
+  class SurveyController
   {
-    $this->survey = new Survey("Enzo's Sample Survey");
+    private Survey $surveyModel;
+    private PDO $pdo;
 
-    $this->survey->addQuestion("Do you enjoy coding?", "yes/no");
-    $this->survey->addQuestion("Rate your PHP skills", "rating");
-    $this->survey->addQuestion("Which language do you like most?", "multiple-choice", ["C++", "Python", "JavaScript"]);
-  }
+    public function __construct(PDO $pdo)
+    {
+      $this->pdo = $pdo;
+      $this->surveyModel = new Survey($pdo);
+    }
 
-  public function showForm(): void 
-  {
-    include 'survey_form.php';
-  }
+    public function dashboard(): void
+    {
+      $this->requireAdmin();
+      include 'admin_dashboard.php';
+    }
 
-  public function handleSubmission(): void 
-  {
-      $responses = [];
-      foreach ($this->survey->questions as $i => $question) 
+    public function showCreateForm(): void
+    {
+      $this->requireAdmin();
+      include 'create_survey.php';
+    }
+
+    public function saveSurvey(): void
+    {
+      $this->requireAdmin();
+
+      $surveyName = $_POST['survey_name'] ?? 'Untitled Survey';
+      $questionText = $_POST['q_text'] ?? '';
+      $questionType = $_POST['q_type'] ?? '';
+      $questionOptions = isset($_POST['q_options']) ? explode(",", $_POST['q_options']) : [];
+
+      $survey = new Survey($this->pdo, $surveyName);
+      $survey->addQuestion($questionText, $questionType, $questionOptions);
+
+      if ($survey->createSurvey()) 
       {
-        $field = "q$i";
-        $response = $_POST[$field] ?? '';
+        echo "Survey saved successfully!";
+      } 
+      else 
+      {
+        echo "Failed to save survey.";
+      }
+    }
 
-        if (!$this->survey->validateResponse($response, $question)) 
-        {
-          echo "Invalid response for question " . ($i + 1);
-          return;
-        }
-
-        $responses[] = $response;
+    public function takeSurvey(): void
+    {
+      $survey = $this->surveyModel->getLatestSurvey();
+      if (!$survey) 
+      {
+        echo "No surveys available.";
+        return;
       }
 
-    $this->survey->allResponses[] = $responses;
-    // $this->survey->saveResults(__DIR__ . '/../data/survey_results.txt');
-
-    // include 'views/thank_you.php';
-  }
-
-  public function preview(): void 
-  {
-    $this->survey->preview();
-  }
-
-  public function results(): void 
-  {
-    $this->survey->viewResults();
-  }
-
-  public function dashboard() 
-  {
-    if ($_SESSION['role'] !== 'admin') 
-    {
-      echo "Access denied.";
-      return;
-    }
-    include 'admin_dashboard.php';
-  }
-
-  public function showCreateForm() 
-  {
-    if ($_SESSION['role'] !== 'admin') 
-    {
-      echo "Access denied.";
-      return;
+      $questions = $survey->getQuestions();
+      include 'survey_form.php';
     }
 
-    include 'create_survey.php';
+    public function handleSubmission(): void
+    {
+      $surveyId = $_POST['survey_id'] ?? null;
+      if (!$surveyId) 
+      {
+        echo "Invalid submission.";
+        return;
+      }
+
+      $survey = Survey::loadFromDatabase($this->pdo, intval($surveyId));
+      if (!$survey) 
+      {
+        echo "Survey not found.";
+        return;
+      }
+
+      $responses = [];
+      foreach ($survey->questions as $question) 
+      {
+        $field = "q" . $question->getId();
+        $response = $_POST[$field] ?? '';
+        if (!$survey->validateResponse($response, $question)) 
+        {
+          echo "Invalid response for question: " . htmlspecialchars($question->getText());
+          return;
+        }
+        $responses[$question->getId()] = $response;
+      }
+
+      $userId = $_SESSION['user_id'] ?? 0;
+      if (!$userId) {
+        echo "User not logged in.";
+        return;
+      }
+
+      if ($survey->saveResponse($userId, $responses)) 
+      {
+        include 'thank_you.php';
+      } 
+      else 
+      {
+        echo "Failed to save your responses.";
+      }
+    }
+
+    public function results(): void
+    {
+      $survey = $this->surveyModel->getLatestSurvey();
+      if (!$survey) 
+      {
+        echo "No survey found.";
+        return;
+      }
+      $survey->viewResults();
+    }
+
+    private function requireAdmin(): void
+    {
+      if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') 
+      {
+        echo "Access denied.";
+        exit;
+      }
+    }
   }
-
-  public function takeSurvey() 
-  {
-    $filePath = __DIR__ . '/../data/surveys.json';
-
-    if (!file_exists($filePath)) 
-    {
-      echo "No surveys available.";
-      return;
-    }
-
-    $data = file_get_contents($filePath);
-    $surveyArray = json_decode($data, true);
-
-    if (!$surveyArray || empty($surveyArray['questions'])) 
-    {
-      echo "No surveys found.";
-      return;
-    }
-
-    $survey = new Survey($surveyArray['surveyName']);
-
-    foreach ($surveyArray['questions'] as $q) 
-    {
-      $survey->addQuestion($q['text'], $q['type'], $q['options'] ?? []);
-    }
-
-    $this->survey = $survey;
-    include 'survey_form.php';
-  }
-
-  public function saveSurvey() // FIX LATER
-  {
-    if ($_SESSION['role'] !== 'admin') 
-    {
-      echo "Access denied.";
-      return;
-    }
-
-    $surveyName = $_POST['survey_name'];
-    $survey = new Survey($surveyName);
-
-    $question = new Question($_POST['q_text'], $_POST['q_type'], explode(",", $_POST['q_options'] ?? ""));
-    $survey->addQuestion($question->getText(), $question->getType(), $question->getOptions());
-
-    file_put_contents(__DIR__ . '/../data/surveys.json', json_encode($survey));
-
-    echo "Survey saved!";
-  }
-
-  private function requireAdmin() 
-  {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') 
-    {
-      echo "Access denied.";
-      exit;
-    }
-  }
-}
+?>
