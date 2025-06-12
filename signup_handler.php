@@ -1,5 +1,6 @@
 <?php
 session_start();
+require 'db.php';
 
 $username = trim($_POST['username']);
 $email = trim($_POST['email']);
@@ -23,19 +24,53 @@ if (!preg_match("/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/", $password)
   $errors[] = "Password must be at least 8 characters with upper, lower, digit, and special char.";
 }
 
-if ($password !== $confirm) {
+if ($password !== $confirm) 
+{
   $errors[] = "Passwords do not match.";
 }
 
-if (!empty($errors)) {
+if (empty($errors)) 
+{
+  try 
+  {
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$username, $email]);
+    if ($stmt->fetch()) 
+    {
+      $errors[] = "Username or email already taken.";
+    }
+  } 
+  catch (PDOException $e) 
+  {
+    $errors[] = "Database error: " . $e->getMessage();
+  }
+}
+
+if (!empty($errors)) 
+{
   $_SESSION['signup_errors'] = $errors;
   $_SESSION['old_input'] = ['username' => $username, 'email' => $email];
   header("Location: signup.php");
   exit;
 }
 
-$_SESSION['username'] = $username;
-$_SESSION['role'] = 'user';
+$hash = password_hash($password, PASSWORD_DEFAULT);
 
-header("Location: index.php");
-exit;
+try 
+{
+  $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
+  $stmt->execute([$username, $email, $hash]);
+
+  $_SESSION['username'] = $username;
+  $_SESSION['role'] = 'user';
+
+  header("Location: index.php");
+  exit;
+} 
+catch (PDOException $e) 
+{
+  $_SESSION['signup_errors'] = ["Database insert error: " . $e->getMessage()];
+  $_SESSION['old_input'] = ['username' => $username, 'email' => $email];
+  header("Location: signup.php");
+  exit;
+}
