@@ -31,7 +31,6 @@
       <ul>
         <li><a href="index.php">Home</a></li>
         <li><a href="survey.php?action=take">Take Survey</a></li>
-        <li><a href="survey.php?action=results">View Results</a></li>
 
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
           <li><a href="survey.php?action=dashboard">Admin Dashboard</a></li>
