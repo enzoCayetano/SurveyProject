@@ -1,6 +1,9 @@
 body {
   margin: 0;
   padding: 0;
+  font-family: sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
 }
 
 nav ul {
@@ -8,6 +11,7 @@ nav ul {
   list-style: none;
   background: #333;
   padding: 1em;
+  margin: 0;
 }
 
 nav a {
@@ -16,12 +20,50 @@ nav a {
   text-decoration: none;
 }
 
-.button {
+nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  max-width: 600px;
+  margin: 2em auto;
+  padding: 1em;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.3em;
+}
+
+.button,
+form button {
   padding: 10px 20px;
   background: #007bff;
   color: white;
   text-decoration: none;
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
+}
+
+form button:hover,
+.button:hover {
+  background: #0056b3;
 }
 
 .error-box {
@@ -31,4 +73,8 @@ nav a {
   margin-bottom: 1rem;
   color: #990000;
   border-radius: 4px;
+}
+
+input[type="checkbox"] {
+  margin-right: 0.5em;
 }
