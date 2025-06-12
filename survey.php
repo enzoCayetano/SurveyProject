@@ -1,11 +1,14 @@
 <?php
-  session_start();
+  if (session_status() === PHP_SESSION_NONE) 
+  {
+    session_start();
+  }
+  
   require_once 'SurveyController.php';
 
   $controller = new SurveyController();
 
-  $action = $_GET['action'] ?? ($_SESSION['role'] === 'admin' ? 'dashboard' : 'take');
-
+  $action = $_GET['action'] ?? ((isset($_SESSION['role']) && $_SESSION['role'] === 'admin') ? 'dashboard' : 'take');
 
   switch ($action) 
   {

@@ -122,4 +122,13 @@ class SurveyController
 
     echo "Survey saved!";
   }
+
+  private function requireAdmin() 
+  {
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') 
+    {
+      echo "Access denied.";
+      exit;
+    }
+  }
 }

@@ -1,19 +1,22 @@
 <?php 
-session_start();
-
-if (!isset($_SESSION['username']) && isset($_COOKIE['remember_token'])) 
-{
-  require_once 'db.php';
-  $stmt = $pdo->prepare("SELECT * FROM users WHERE remember_token = ?");
-  $stmt->execute([$_COOKIE['remember_token']]);
-  $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-  if ($user) 
+  if (session_status() === PHP_SESSION_NONE) 
   {
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['role'] = $user['role'] ?? 'user';
+    session_start();
   }
-}
+
+  if (!isset($_SESSION['username']) && isset($_COOKIE['remember_token'])) 
+  {
+    require_once 'db.php';
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE remember_token = ?");
+    $stmt->execute([$_COOKIE['remember_token']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) 
+    {
+      $_SESSION['username'] = $user['username'];
+      $_SESSION['role'] = $user['role'] ?? 'user';
+    }
+  }
 ?>
 
 <!DOCTYPE html>
