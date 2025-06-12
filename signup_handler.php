@@ -64,6 +64,16 @@ try
   $_SESSION['username'] = $username;
   $_SESSION['role'] = 'user';
 
+  if (!empty($_POST['remember'])) 
+  {
+    $token = bin2hex(random_bytes(32));
+    setcookie('remember_token', $token, time() + (86400 * 30), "/");
+    
+    // Store token in DB
+    $stmt = $pdo->prepare("UPDATE users SET remember_token = ? WHERE username = ?");
+    $stmt->execute([$token, $username]);
+  }
+
   header("Location: index.php");
   exit;
 } 

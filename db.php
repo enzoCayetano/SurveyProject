@@ -1,6 +1,6 @@
 <?php
   $host = 'localhost';
-  $db   = 'myapp_db';
+  $db   = 'survey_db';
   $user = 'appuser';
   $pass = 'password';
 
